@@ -19,14 +19,36 @@ def task1() -> None:
 
 def task2() -> None:
     # Print out the JSON Schema
-    # TODO
     pass
+    main_model_schema = Model.model_json_schema()
+    console.print_json(data=main_model_schema)
 
 
 def task3() -> None:
     # Create a Data Structure from the Objects and Print the JSON
-    # TODO
     pass
+    vias = [Via(interface=f"Eth{x}", nexthopAddr=f"10.0.0.{x}") for x in range(4)]
+    route = Route(
+        hardwareProgrammed=True,
+        routeType="Fake",
+        routeLeaked=False,
+        kernelProgrammed=True,
+        preference=250,
+        metric=666,
+        routeAction="forward",
+        vias=vias,
+        directlyConnected=True,
+    )
+    vrf = Vrf(
+        routingDisabled=False,
+        allRoutesProgrammedHardware=True,
+        allRoutesProgrammedKernel=True,
+        defaultRouteState="notSet",
+        routes={"10.10.10.0/24": route},
+    )
+    model = Model(vrfs={"default": vrf})
+
+    console.print_json(model.model_dump_json())
 
 
 if __name__ == "__main__":

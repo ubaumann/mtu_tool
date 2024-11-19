@@ -1,9 +1,10 @@
 from typing import Dict, List, Optional
+from ipaddress import IPv4Address, IPv4Network
 from pydantic import BaseModel
 
 
 class Via(BaseModel):
-    nexthopAddr: Optional[str] = None
+    nexthopAddr: Optional[IPv4Address] = None
     interface: str
 
 
@@ -24,7 +25,7 @@ class Vrf(BaseModel):
     allRoutesProgrammedHardware: bool
     allRoutesProgrammedKernel: bool
     defaultRouteState: str
-    routes: Dict[str, Route]
+    routes: Dict[IPv4Network, Route]
 
 
 class Model(BaseModel):
