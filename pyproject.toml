@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "mtu-tool"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+nornir = "^3.4.1"
+nornir-napalm = "^0.5.0"
+nornir-rich = "^0.2.0"
+typer = "^0.13.0"
+rich = "^13.9.4"
+pydantic = "^2.9.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
+mypy = "^1.13.0"
+datamodel-code-generator = "^0.26.2"
+pytest = "^8.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+python_version = "3.10"
+check_untyped_defs = true
+disallow_any_generics = true
+ignore_errors = false
+ignore_missing_imports = true
+strict_optional = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = "nornir.core"
+ignore_errors = true

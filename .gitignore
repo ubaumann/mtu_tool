@@ -1,0 +1,10 @@
+.pytest_cache
+__pycache__/
+nornir.log
+.clab.yml.bak
+ansible.cfg
+group_vars
+host_vars
+hosts.yml
+netlab.snapshot.yml
+clab.yml
