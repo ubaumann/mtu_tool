@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from rich.console import Console
+from rich.tree import Tree
 
 from mtu_tool.models.itms import ConnectionItem
 
@@ -12,9 +13,25 @@ def print_path(
     console: Console = Console(),
 ) -> None:
 
-    # TODO
-    # use console.print(...) to print
-    pass
+    tree = Tree(f":gear: {start_name}")
+    for path in paths:
+        sub_tree = tree
+        for step in path:
+            find_in_tree = filter(lambda x: x.label == step, sub_tree.children)
+            if existing_tree := next(find_in_tree, None):
+                sub_tree = existing_tree.children[0]
+                continue
+            sub_tree = sub_tree.add(
+                step,
+                highlight=True,
+                style=(
+                    "red"
+                    if min_mtu
+                    and (step.local_mtu < min_mtu or min_mtu > step.neighbor_mtu)  # type: ignore
+                    else None
+                ),
+            ).add(f":gear: {step.neighbor_name}", style="white")
+    console.print(tree)
 
 
 if __name__ == "__main__":
