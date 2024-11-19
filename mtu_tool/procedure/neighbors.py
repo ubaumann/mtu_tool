@@ -5,6 +5,7 @@ from nornir.core.task import AggregatedResult
 from nornir.core.filter import F
 from nornir_napalm.plugins.tasks import napalm_get
 
+from mtu_tool.exceptions import NoHostFoundException
 from mtu_tool.models.itms import ConnectionItem
 
 
@@ -14,7 +15,55 @@ def neighbors(
 ) -> Tuple[List[ConnectionItem], AggregatedResult]:
     """Collect the mtu for all local and neighbor interfaces"""
 
-    # TODO
+    nr_host = nr.filter(name=hostname)
+    if len(nr_host.inventory) == 0:
+        raise NoHostFoundException(f"Host {hostname} not found in inventory")
+
+    result_lldp = nr_host.run(
+        task=napalm_get,
+        getters=[
+            "get_lldp_neighbors",
+        ],
+    )
+    hosts = [hostname]
+    get_lldp_neighbors = result_lldp[hostname][0].result.get("get_lldp_neighbors", {})
+    for lldp_data in get_lldp_neighbors.values():
+        for lldp_neighbor in lldp_data:
+            n = lldp_neighbor["hostname"]
+            if n not in hosts:
+                hosts.append(n)
+
+    result_interfaces = nr.filter(F(name__any=hosts)).run(
+        task=napalm_get,
+        getters=[
+            "get_interfaces",
+        ],
+    )
+
+    get_interfaces_local = result_interfaces[hostname][0].result.get(
+        "get_interfaces", {}
+    )
+
+    connections = []
+    for local_interface, lldp_data in get_lldp_neighbors.items():
+        local_mtu = get_interfaces_local[local_interface]["mtu"]
+        for lldp_neighbor in lldp_data:
+            neighbor_name = lldp_neighbor["hostname"]
+            neighbor_interface = lldp_neighbor["port"]
+            neighbor_mtu = result_interfaces[neighbor_name][0].result.get(
+                "get_interfaces", {}
+            )[neighbor_interface]["mtu"]
+
+            connections.append(
+                ConnectionItem(
+                    local_name=hostname,
+                    local_interface=local_interface,
+                    local_mtu=local_mtu,
+                    neighbor_name=neighbor_name,
+                    neighbor_interface=neighbor_interface,
+                    neighbor_mtu=neighbor_mtu,
+                )
+            )
 
     return connections, result_interfaces
 

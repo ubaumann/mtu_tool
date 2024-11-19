@@ -4,6 +4,7 @@ from nornir.core import Nornir
 from nornir.core.task import AggregatedResult
 from nornir_napalm.plugins.tasks import napalm_get
 
+from mtu_tool.exceptions import NoHostFoundException
 from mtu_tool.models.itms import InterfaceItem
 
 
@@ -13,7 +14,25 @@ def interfaces(
 ) -> Tuple[Dict["str", List[InterfaceItem]], AggregatedResult]:
     """Collect the mtu for all interfaces"""
 
-    # TODO
+    if hostname:
+        nr = nr.filter(name=hostname)
+        if len(nr.inventory) == 0:
+            raise NoHostFoundException(f"Host {hostname} not found in inventory")
+
+    result = nr.run(
+        task=napalm_get,
+        getters=[
+            "get_interfaces",
+        ],
+    )
+
+    data = {}
+    for host, mulit_result in result.items():
+        data_interface = []
+        interfaces = mulit_result[0].result.get("get_interfaces", {})
+        for int_name, int_data in interfaces.items():
+            data_interface.append(InterfaceItem(name=int_name, mtu=int_data.get("mtu")))
+        data[host] = data_interface
 
     return data, result
 
